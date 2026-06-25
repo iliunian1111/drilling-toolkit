@@ -15,6 +15,12 @@ const WECHAT_PROMO = {
   tagline: '获取更多钻井干货、实用工具与行业资料',
 };
 
+/** 隐藏福利 — 点击公众号卡片展示 */
+const HIDDEN_REWARD = {
+  url: 'https://pan.baidu.com/s/1xAvavezzTjq5M4ufVN9ULA',
+  password: '3d2i',
+};
+
 const CATEGORIES = [
   {
     id: 'tubular',
@@ -1173,6 +1179,7 @@ function getToolDomain(tool) {
 window.DT = {
   EXTERNAL_LINKS,
   WECHAT_PROMO,
+  HIDDEN_REWARD,
   CATEGORIES,
   DOMAINS,
   TOOLS,

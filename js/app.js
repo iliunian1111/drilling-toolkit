@@ -10,7 +10,7 @@ if (!window.DT || !window.DTTools) {
   return;
 }
 
-const { CATEGORIES, DOMAINS, TOOLS, EXTERNAL_LINKS, WECHAT_PROMO, getTool, getCategory, getDomain, getToolsByCategory, getToolsByDomain, getToolDomain } = window.DT;
+const { CATEGORIES, DOMAINS, TOOLS, EXTERNAL_LINKS, WECHAT_PROMO, HIDDEN_REWARD, getTool, getCategory, getDomain, getToolsByCategory, getToolsByDomain, getToolDomain } = window.DT;
 const { renderTool, getToolIcon } = window.DTTools;
 
 const STORAGE_FAV = 'drilling-toolkit-favorites';
@@ -176,6 +176,10 @@ function renderSidebar() {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z"/></svg>
       <span>首页</span>
     </a>
+    <button type="button" class="sidebar-nav-link sidebar-bonus-link" id="sidebar-bonus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v8H4v-8M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+      <span>福利</span>
+    </button>
     ${sidebarSection('common', '常用', commonBody)}
     ${groupSections}
   </div>`;
@@ -232,6 +236,12 @@ function bindSidebarEvents() {
   $('#sidebar-toggle')?.addEventListener('click', toggleSidebar);
   $('#sidebar-backdrop')?.addEventListener('click', closeSidebar);
   $('#app-sidebar')?.addEventListener('click', (e) => {
+    if (e.target.closest('#sidebar-bonus')) {
+      e.preventDefault();
+      openBonusModal();
+      if (window.innerWidth <= 900) closeSidebar();
+      return;
+    }
     const toggle = e.target.closest('.sidebar-section-toggle');
     if (toggle) {
       e.preventDefault();
@@ -452,6 +462,78 @@ function renderFavorites() {
   </section>`;
 }
 
+function renderBonusModal() {
+  const { url, password } = HIDDEN_REWARD;
+  return `<div class="bonus-modal" id="bonus-modal">
+    <div class="bonus-modal-backdrop" data-close-bonus></div>
+    <div class="bonus-modal-panel">
+      <button type="button" class="bonus-modal-close" data-close-bonus aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <h2>电子书资料库</h2>
+      <p class="bonus-modal-desc">感谢关注能源数库，以下为整理的行业电子书资料。</p>
+      <div class="bonus-field">
+        <label>百度网盘</label>
+        <div class="bonus-copy-row">
+          <input type="text" class="bonus-input" value="${url}" readonly>
+          <button type="button" class="btn btn-secondary btn-sm" data-copy-bonus="url">复制</button>
+        </div>
+      </div>
+      <div class="bonus-field">
+        <label>提取码</label>
+        <div class="bonus-copy-row">
+          <input type="text" class="bonus-input bonus-input-code" value="${password}" readonly>
+          <button type="button" class="btn btn-secondary btn-sm" data-copy-bonus="password">复制</button>
+        </div>
+      </div>
+      <a href="${url}" class="btn btn-primary bonus-open-btn" target="_blank" rel="noopener">打开百度网盘 →</a>
+    </div>
+  </div>`;
+}
+
+function closeBonusModal() {
+  $('#bonus-modal')?.remove();
+}
+
+function openBonusModal() {
+  closeBonusModal();
+  document.body.insertAdjacentHTML('beforeend', renderBonusModal());
+}
+
+async function copyBonusValue(field, btn) {
+  const text = field === 'password' ? HIDDEN_REWARD.password : HIDDEN_REWARD.url;
+  try {
+    await navigator.clipboard.writeText(text);
+    if (btn) {
+      const prev = btn.textContent;
+      btn.textContent = '已复制';
+      setTimeout(() => { btn.textContent = prev; }, 1500);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function bindBonusTriggers() {
+  if (bindBonusTriggers.bound) return;
+  bindBonusTriggers.bound = true;
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-close-bonus]')) {
+      e.preventDefault();
+      closeBonusModal();
+      return;
+    }
+    const copyBtn = e.target.closest('[data-copy-bonus]');
+    if (copyBtn) {
+      e.preventDefault();
+      copyBonusValue(copyBtn.dataset.copyBonus, copyBtn);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && $('#bonus-modal')) closeBonusModal();
+  });
+}
+
 function renderSearchModal(query = '') {
   const q = query.toLowerCase();
   const results = q
@@ -631,6 +713,7 @@ function boot() {
       throw new Error('数据模块未加载');
     }
     initTheme();
+    bindBonusTriggers();
     renderFooter();
     renderSidebar();
     bindSidebarEvents();
