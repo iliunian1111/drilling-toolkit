@@ -1,0 +1,10 @@
+{
+  "name": "钻井工具箱",
+  "short_name": "钻井工具",
+  "description": "钻井参数计算与查询工具",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#0d9488",
+  "lang": "zh-CN"
+}
